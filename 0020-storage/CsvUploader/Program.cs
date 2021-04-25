@@ -32,6 +32,16 @@ var child = new Command("list")
 };
 rootCommand.Add(child);
 
+var fileNameOption = new Option<string>("--file", "Name of file to upload");
+fileNameOption.AddAlias("-f");
+
+child = new Command("upload")
+{
+    fileNameOption,
+};
+child.Handler = CommandHandler.Create<UploadParameters>(CsvUploaderCommands.Upload);
+rootCommand.Add(child);
+
 await rootCommand.InvokeAsync(args);
 
 internal record ConnectionParameters(
@@ -39,3 +49,10 @@ internal record ConnectionParameters(
     string? AccountName,
     string ContainerName,
     bool UseAzurite);
+
+internal record UploadParameters(string? AccountKey,
+    string? AccountName,
+    string ContainerName,
+    bool UseAzurite,
+    string File)
+    : ConnectionParameters(AccountKey, AccountName, ContainerName, UseAzurite);
