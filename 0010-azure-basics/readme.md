@@ -1,5 +1,13 @@
 # Azure Basics
 
+## Prerequisites
+
+* Make sure to have the latest version of the Azure CLI installed.
+  * Find out [what's the current version](https://docs.microsoft.com/en-us/cli/azure/release-notes-azure-cli)
+  * Check version: `az version`
+  * [Install guide](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+* Make sure to have access to an Azure subscription
+
 ## Theory and Concepts
 
 * General introduction to Azure
