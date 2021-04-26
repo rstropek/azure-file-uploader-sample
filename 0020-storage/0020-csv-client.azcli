@@ -1,0 +1,31 @@
+# az login --use-device-code
+# az account set --subscription "<enter subscription ID here>"
+
+RG="DemoResourceGroup"
+STG="stgzsknz6bopw7ma"
+
+########################################################################################################################
+# Get access key
+KEY=$(az storage account keys list --account-name $STG --resource-group $RG | jq .[0].value -r)
+
+########################################################################################################################
+# Interact with storage
+dotnet run -- --account-name $STG --account-key $KEY list
+dotnet run -- --account-name $STG --account-key $KEY upload --source-file ../data.csv --destination-file somedata.csv
+dotnet run -- --account-name $STG --account-key $KEY upload --source-file ../data.csv --destination-file somedir/somedata.csv
+dotnet run -- --account-name $STG --account-key $KEY upload --source-file ../data.csv --destination-file somedir/somedata.csv --customer Foo
+dotnet run -- --account-name $STG --account-key $KEY parse --file somedir/somedata.csv
+dotnet run -- --account-name $STG --account-key $KEY share --file somedir/somedata.csv
+SAS=$(dotnet run -- --account-name $STG --account-key $KEY share --file somedir/somedata.csv)
+curl https://$STG.blob.core.windows.net/csv-upload/somedir/somedata.csv?$SAS -s | head -3
+
+########################################################################################################################
+# Try with azurite
+dotnet run -- --use-azurite list
+dotnet run -- --use-azurite upload --source-file ../data.csv --destination-file somedata.csv
+dotnet run -- --use-azurite upload --source-file ../data.csv --destination-file somedir/somedata.csv
+dotnet run -- --use-azurite upload --source-file ../data.csv --destination-file somedir/somedata.csv --customer Foo
+dotnet run -- --use-azurite parse --file somedir/somedata.csv
+dotnet run -- --use-azurite share --file somedir/somedata.csv
+SAS=$(dotnet run -- --use-azurite share --file somedir/somedata.csv)
+curl echo http://127.0.0.1:10000/devstoreaccount1/csv-upload/somedir/somedata.csv?$SAS -s | head -3

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Azure.Storage;
 
 namespace CsvUploader
 {
@@ -7,9 +7,12 @@ namespace CsvUploader
         private static string BuildConnectionString(string accountName, string accountKey)
             => $"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey}";
 
+        private const string AzuriteAccountName = "devstoreaccount1";
+        private const string AzuriteAccountKey = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==";
+
         private static string GetAzuriteConnectionString()
-            => $"DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;" +
-            $"AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;" +
+            => $"DefaultEndpointsProtocol=http;AccountName={AzuriteAccountName};" +
+            $"AccountKey={AzuriteAccountKey};" +
             $"BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1";
 
         public static string BuildConnectionString(ConnectionParameters parameters)
@@ -17,16 +20,7 @@ namespace CsvUploader
             if (parameters.UseAzurite) return GetAzuriteConnectionString();
             else
             {
-                if (string.IsNullOrEmpty(parameters.AccountName))
-                {
-                    throw new ArgumentException("Expecting account name", nameof(ConnectionParameters.AccountName));
-                }
-
-                if (string.IsNullOrEmpty(parameters.AccountKey))
-                {
-                    throw new ArgumentException("Expecting account key", nameof(ConnectionParameters.AccountKey));
-                }
-
+                parameters.EnsureNameAndKeyAreSet();
                 return BuildConnectionString(parameters.AccountName, parameters.AccountKey);
             }
         }
