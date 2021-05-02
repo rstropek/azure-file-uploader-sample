@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>HelloAspNet</name>
+    </assembly>
+    <members>
+        <member name="M:HelloAspNet.Controllers.HeroesController.GetAllHeroes">
+            <summary>
+            Gets all heroes from repository
+            </summary>
+        </member>
+        <member name="M:HelloAspNet.Controllers.HeroesController.GetHeroById(System.Int32)">
+            <summary>
+            Gets a hero by id
+            </summary>
+            <param name="id">ID of the hero to find</param>
+        </member>
+        <member name="M:HelloAspNet.Controllers.HeroesController.AddHero(HelloAspNet.Services.NewHero)">
+            <summary>
+            Add a new hero
+            </summary>
+            <param name="hero">Data of the new hero</param>
+        </member>
+        <member name="M:HelloAspNet.Controllers.HeroesController.PatchHero(System.Int32,HelloAspNet.Services.HeroPatch)">
+            <summary>
+            Update an existing hero
+            </summary>
+            <param name="id">ID of the hero to update</param>
+            <param name="patch">Fields to update</param>
+        </member>
+        <member name="M:HelloAspNet.Controllers.HeroesController.DeleteHeroById(System.Int32)">
+            <summary>
+            Delete an existing hero
+            </summary>
+            <param name="id">ID of the hero to delete</param>
+        </member>
+    </members>
+</doc>

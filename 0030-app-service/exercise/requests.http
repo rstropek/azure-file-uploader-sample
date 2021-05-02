@@ -1,0 +1,72 @@
+#@host=https://localhost:5001
+@host=https://web-test-pev2gfaroj3es.azurewebsites.net/
+#@host=https://web-pev2gfaroj3es.azurewebsites.net/
+
+###
+GET {{host}}/hello/world
+
+###
+GET {{host}}/hello/universe
+
+###
+# @name heroes
+GET {{host}}/api/heroes
+Accept: application/json
+
+###
+POST {{host}}/api/heroes
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Homelander",
+    "canFly": true
+}
+
+###
+# The following request will fail because of missing name
+POST {{host}}/api/heroes
+Content-Type: application/json
+Accept: application/json
+
+{
+    "canFly": true
+}
+
+###
+@firstHero={{heroes.response.body.$.[0].id}}
+GET {{host}}/api/heroes/{{firstHero}}
+Accept: application/json
+
+###
+GET {{host}}/api/heroes/4711
+Accept: application/json
+
+###
+@firstHero={{heroes.response.body.$.[0].id}}
+PATCH {{host}}/api/heroes/{{firstHero}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Wonder Woman"
+}
+
+###
+# The following request will faile because name is empty
+@firstHero={{heroes.response.body.$.[0].id}}
+PATCH {{host}}/api/heroes/{{firstHero}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": ""
+}
+
+###
+@firstHero={{heroes.response.body.$.[0].id}}
+DELETE {{host}}/api/heroes/{{firstHero}}
+
+###
+GET {{host}}/api/blobs
+Accept: application/json
