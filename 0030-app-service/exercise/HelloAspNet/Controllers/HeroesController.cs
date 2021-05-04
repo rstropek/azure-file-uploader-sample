@@ -28,6 +28,7 @@ namespace HelloAspNet.Controllers
         /// <param name="id">ID of the hero to find</param>
         [HttpGet("{id}", Name = nameof(GetHeroById))]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(Hero))]
         public ActionResult<Hero> GetHeroById(int id)
         {
             if (!repository.TryGetById(id, out var hero)) return NotFound();
@@ -55,6 +56,7 @@ namespace HelloAspNet.Controllers
         [HttpPatch("{id}", Name = nameof(PatchHero))]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesErrorResponseType(typeof(ProblemDetails))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(Hero))]
         public ActionResult<Hero> PatchHero(int id, [FromBody] HeroPatch patch)
         {
             if (!repository.TryPatch(id, patch, out var patchedHero)) return NotFound();
@@ -67,6 +69,7 @@ namespace HelloAspNet.Controllers
         /// <param name="id">ID of the hero to delete</param>
         [HttpDelete("{id}", Name = nameof(DeleteHeroById))]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public ActionResult DeleteHeroById(int id)
         {
             if (!repository.TryDeleteById(id)) return NotFound();
