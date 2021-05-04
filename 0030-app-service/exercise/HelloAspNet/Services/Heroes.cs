@@ -11,6 +11,7 @@ namespace HelloAspNet.Services
     public record NewHero([Required][MinLength(1)] string Name, bool CanFly);
     public record Hero(int Id, string Name, bool CanFly) : NewHero(Name, CanFly);
     public record HeroPatch([MinLengthIfNotNull(1)] string? Name, bool? CanFly);
+    public record HeroWithIdPatch(int Id, string? Name, bool? CanFly) : HeroPatch(Name, CanFly);
 
     public interface IHeroesRepository
     {
@@ -21,6 +22,8 @@ namespace HelloAspNet.Services
         Hero Add(NewHero h);
 
         bool TryPatch(int id, HeroPatch patch, out Hero? hero);
+
+        void Patch(IEnumerable<HeroWithIdPatch> patches, out IEnumerable<Hero> heroes);
 
         bool TryDeleteById(int id);
     }
@@ -70,6 +73,20 @@ namespace HelloAspNet.Services
 
             Heroes[id] = hero;
             return true;
+        }
+
+        public void Patch(IEnumerable<HeroWithIdPatch> patches, out IEnumerable<Hero> heroes)
+        {
+            var result = new List<Hero>();
+            heroes = result;
+
+            foreach (var heroPatch in patches)
+            {
+                if (TryPatch(heroPatch.Id, heroPatch, out var hero) && hero != null)
+                {
+                    result.Add(hero);
+                }
+            }
         }
 
         public bool TryDeleteById(int id)

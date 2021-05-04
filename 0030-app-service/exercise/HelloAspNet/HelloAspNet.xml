@@ -28,6 +28,12 @@
             <param name="id">ID of the hero to update</param>
             <param name="patch">Fields to update</param>
         </member>
+        <member name="M:HelloAspNet.Controllers.HeroesController.PatchHeroes(System.Collections.Generic.IEnumerable{HelloAspNet.Services.HeroWithIdPatch})">
+            <summary>
+            Update existing heroes
+            </summary>
+            <param name="patches">Patches</param>
+        </member>
         <member name="M:HelloAspNet.Controllers.HeroesController.DeleteHeroById(System.Int32)">
             <summary>
             Delete an existing hero

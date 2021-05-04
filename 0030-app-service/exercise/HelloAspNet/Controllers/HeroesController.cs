@@ -1,4 +1,5 @@
 ﻿using HelloAspNet.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Net;
@@ -27,8 +28,8 @@ namespace HelloAspNet.Controllers
         /// </summary>
         /// <param name="id">ID of the hero to find</param>
         [HttpGet("{id}", Name = nameof(GetHeroById))]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(Hero))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Hero))]
         public ActionResult<Hero> GetHeroById(int id)
         {
             if (!repository.TryGetById(id, out var hero)) return NotFound();
@@ -40,7 +41,7 @@ namespace HelloAspNet.Controllers
         /// </summary>
         /// <param name="hero">Data of the new hero</param>
         [HttpPost(Name = nameof(AddHero))]
-        [ProducesResponseType(typeof(Hero), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(Hero), StatusCodes.Status201Created)]
         [ProducesErrorResponseType(typeof(ProblemDetails))]
         public ActionResult<Hero> AddHero([FromBody] NewHero hero)
         {
@@ -54,9 +55,9 @@ namespace HelloAspNet.Controllers
         /// <param name="id">ID of the hero to update</param>
         /// <param name="patch">Fields to update</param>
         [HttpPatch("{id}", Name = nameof(PatchHero))]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesErrorResponseType(typeof(ProblemDetails))]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(Hero))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Hero))]
         public ActionResult<Hero> PatchHero(int id, [FromBody] HeroPatch patch)
         {
             if (!repository.TryPatch(id, patch, out var patchedHero)) return NotFound();
@@ -64,12 +65,24 @@ namespace HelloAspNet.Controllers
         }
 
         /// <summary>
+        /// Update existing heroes
+        /// </summary>
+        /// <param name="patches">Patches</param>
+        [HttpPatch(Name = nameof(PatchHeroes))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Hero>))]
+        public ActionResult<IEnumerable<Hero>> PatchHeroes([FromBody] IEnumerable<HeroWithIdPatch> patches)
+        {
+            repository.Patch(patches, out var patchedHeroes);
+            return Ok(patchedHeroes);
+        }
+
+        /// <summary>
         /// Delete an existing hero
         /// </summary>
         /// <param name="id">ID of the hero to delete</param>
         [HttpDelete("{id}", Name = nameof(DeleteHeroById))]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public ActionResult DeleteHeroById(int id)
         {
             if (!repository.TryDeleteById(id)) return NotFound();
