@@ -1,0 +1,53 @@
+#@host=https://localhost:5001
+@host=https://web-test-67zwxeawqbvie.azurewebsites.net
+
+###
+# @name customers
+GET {{host}}/api/customers
+Accept: application/json
+
+###
+POST {{host}}/api/customers
+Content-Type: application/json
+Accept: application/json
+
+{
+    "firstName": "Foo",
+    "lastName": "Bar",
+    "email": "foo@bar.com",
+    "gender": "Male",
+    "ipAddress": "0.0.0.0"
+}
+
+###
+# The following request will fail because of missing email
+POST {{host}}/api/customers
+Content-Type: application/json
+Accept: application/json
+
+{
+    "firstName": "FooBar"
+}
+
+###
+@firstCustomer={{customers.response.body.$.[0].id}}
+GET {{host}}/api/customers/{{firstCustomer}}
+Accept: application/json
+
+###
+GET {{host}}/api/customers/4711
+Accept: application/json
+
+###
+@firstCustomer={{customers.response.body.$.[0].id}}
+PATCH {{host}}/api/customers/{{firstCustomer}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "lastName": "Baz"
+}
+
+###
+@firstCustomer={{customers.response.body.$.[0].id}}
+DELETE {{host}}/api/customers/{{firstCustomer}}
