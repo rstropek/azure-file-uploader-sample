@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AzureSqlEfcore.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20210503092054_CustomersStaging")]
-    partial class CustomersStaging
+    [Migration("20210505053748_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -59,9 +59,7 @@ namespace AzureSqlEfcore.Migrations
             modelBuilder.Entity("AzureSqlEfcore.Data.CustomerStaging", b =>
                 {
                     b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .IsRequired()

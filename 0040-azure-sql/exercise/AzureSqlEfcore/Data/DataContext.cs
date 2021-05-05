@@ -19,7 +19,10 @@ namespace AzureSqlEfcore.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Customer>().HasIndex(c => c.Email).IsUnique();
+
             modelBuilder.Entity<CustomerStaging>().HasIndex(c => c.Email).IsUnique();
+            modelBuilder.Entity<CustomerStaging>().HasKey(c => c.ID);
+            modelBuilder.Entity<CustomerStaging>().Property(c => c.ID).ValueGeneratedNever();
         }
     }
 }

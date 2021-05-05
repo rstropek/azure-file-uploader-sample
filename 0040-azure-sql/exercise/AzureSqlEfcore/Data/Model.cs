@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using CsvHelper.Configuration.Attributes;
+using System.ComponentModel.DataAnnotations;
 
 namespace AzureSqlEfcore.Data
 {
@@ -25,21 +26,27 @@ namespace AzureSqlEfcore.Data
 
     public class CustomerStaging
     {
+        [Name("id")]
         public int ID { get; set; }
 
+        [Name("first_name")]
         [MaxLength(100)]
         public string? FirstName { get; set; }
 
+        [Name("last_name")]
         [MaxLength(100)]
         public string? LastName { get; set; }
 
+        [Name("email")]
         [MaxLength(150)]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
+        [Name("gender")]
         [MaxLength(50)]
         public string? Gender { get; set; }
 
+        [Name("ip_address")]
         [MaxLength(15)]
         public string? IpAddress { get; set; }
     }

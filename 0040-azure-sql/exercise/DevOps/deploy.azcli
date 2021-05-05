@@ -1,7 +1,7 @@
 # az login --use-device-code
 # az account set --subscription "<enter subscription ID here>"
 
-RG="AxaLive2"
+RG="AxaLive"
 BASE="hellosql"
 
 # Find an AAD group

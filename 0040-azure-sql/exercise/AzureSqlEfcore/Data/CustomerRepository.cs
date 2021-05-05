@@ -24,6 +24,10 @@ namespace AzureSqlEfcore.Data
 
         Task<Customer> Add(Customer c);
 
+        Task<CustomerStaging> Add(CustomerStaging c);
+
+        Task MergeStaging();
+
         Task<Customer?> TryPatch(int id, CustomerPatch patch);
 
         Task<bool> TryDeleteById(int id);
@@ -55,6 +59,40 @@ namespace AzureSqlEfcore.Data
             await dc.SaveChangesAsync();
             logger.LogTrace("Added new customer {id}.", c.ID);
             return c;
+        }
+
+        public async Task<CustomerStaging> Add(CustomerStaging c)
+        {
+            dc.CustomersStaging.Add(c);
+            await dc.SaveChangesAsync();
+            logger.LogTrace("Added new customer {id}  to staging.", c.ID);
+            return c;
+        }
+
+        public async Task MergeStaging()
+        {
+            await dc.Database.ExecuteSqlRawAsync(@"
+                MERGE Customers AS target
+                USING (SELECT FirstName, LastName, Email, Gender, IpAddress FROM CustomersStaging)
+                    AS source(FirstName, LastName, Email, Gender, IpAddress)
+                ON (source.Email = target.Email)
+                WHEN MATCHED AND target.FirstName <> source.FirstName
+                    OR target.LastName <> source.LastName 
+                    OR target.Email <> source.Email 
+                    OR target.Gender <> source.Gender 
+                    OR target.IpAddress <> source.IpAddress THEN
+                    UPDATE SET target.FirstName = source.FirstName,
+                        target.LastName = source.LastName,
+                        target.Email = source.Email,
+                        target.Gender = source.Gender,
+                        target.IpAddress = source.IpAddress
+                WHEN NOT MATCHED BY TARGET THEN
+                    INSERT (FirstName, LastName, Email, Gender, IpAddress)
+                    VALUES (FirstName, LastName, Email, Gender, IpAddress)
+                WHEN NOT MATCHED BY SOURCE THEN
+                    DELETE
+                OUTPUT $action;");
+            await dc.Database.ExecuteSqlRawAsync("TRUNCATE TABLE CustomersStaging");
         }
 
         public async Task<Customer?> TryPatch(int id, CustomerPatch patch)

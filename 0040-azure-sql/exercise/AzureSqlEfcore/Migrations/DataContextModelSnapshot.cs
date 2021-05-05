@@ -57,9 +57,7 @@ namespace AzureSqlEfcore.Migrations
             modelBuilder.Entity("AzureSqlEfcore.Data.CustomerStaging", b =>
                 {
                     b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .IsRequired()

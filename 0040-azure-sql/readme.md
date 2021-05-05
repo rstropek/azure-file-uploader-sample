@@ -61,21 +61,8 @@ CREATE TABLE [Customers] (
 );
 GO
 
-CREATE UNIQUE INDEX [IX_Customers_Email] ON [Customers] ([Email]);
-GO
-
-INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-VALUES (N'20210503083850_Customers', N'5.0.5');
-GO
-
-COMMIT;
-GO
-
-BEGIN TRANSACTION;
-GO
-
 CREATE TABLE [CustomersStaging] (
-    [ID] int NOT NULL IDENTITY,
+    [ID] int NOT NULL,
     [FirstName] nvarchar(100) NULL,
     [LastName] nvarchar(100) NULL,
     [Email] nvarchar(150) NOT NULL,
@@ -85,11 +72,14 @@ CREATE TABLE [CustomersStaging] (
 );
 GO
 
+CREATE UNIQUE INDEX [IX_Customers_Email] ON [Customers] ([Email]);
+GO
+
 CREATE UNIQUE INDEX [IX_CustomersStaging_Email] ON [CustomersStaging] ([Email]);
 GO
 
 INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-VALUES (N'20210503092054_CustomersStaging', N'5.0.5');
+VALUES (N'20210505053748_Initial', N'5.0.5');
 GO
 
 COMMIT;

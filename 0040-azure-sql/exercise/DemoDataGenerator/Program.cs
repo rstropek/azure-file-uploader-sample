@@ -4,7 +4,8 @@ const string VowelsUppercase = "AEIOU";
 const string VowelsLowercase = "aeiou";
 const string Consonants = "bcdfghjklmnpqrstvwxyz";
 
-const int NumberOfRecords = 1_000_000;
+var NumberOfRecords = 1_000_000;
+if (args.Length == 1 && int.TryParse(args[0], out var noOfRows)) NumberOfRecords = noOfRows;
 var random = new Random();
 
 Console.WriteLine("id,first_name,last_name,email,gender,ip_address");

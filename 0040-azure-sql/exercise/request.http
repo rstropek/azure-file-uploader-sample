@@ -1,5 +1,5 @@
-#@host=https://localhost:5001
-@host=https://web-test-67zwxeawqbvie.azurewebsites.net
+@host=https://localhost:5001
+#@host=https://web-test-67zwxeawqbvie.azurewebsites.net
 
 ###
 # @name customers
@@ -51,3 +51,9 @@ Accept: application/json
 ###
 @firstCustomer={{customers.response.body.$.[0].id}}
 DELETE {{host}}/api/customers/{{firstCustomer}}
+
+###
+POST {{host}}/api/customers/import?sourceFile=import-original.csv
+
+###
+POST {{host}}/api/customers/import?sourceFile=import-changed.csv

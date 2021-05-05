@@ -11,6 +11,8 @@ param poolCapacity int = 50
 param serverName string = 'sql-${uniqueString(baseName)}'
 param sqlDBName string = 'sqldb-${uniqueString(baseName)}'
 
+param csvUploadContainerName string = 'csv-upload'
+
 @description('Indicates whether it should be possible to access this SQL Server over the public internet')
 param allowInternetAccess bool = true
 
@@ -29,6 +31,7 @@ var storageName = concat('st', uniqueString(baseName))
 
 var roleIds = {
   storageBlobDataContributor: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+  storageBlobDataReader: '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
 }
 
 resource server 'Microsoft.Sql/servers@2020-11-01-preview' = {
@@ -119,6 +122,24 @@ resource csvStorage 'Microsoft.Storage/storageAccounts@2021-02-01' = {
   }
 }
 
+resource csvUploadContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-02-01' = {
+  name: concat(csvStorage.name, '/default/', csvUploadContainerName)
+  properties: {
+    publicAccess: 'None'
+  }
+}
+
+resource storageAdminGroupAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+  name: guid(csvStorage.id, aadAdminTeamId)
+  scope: csvStorage
+  properties: {
+    principalId: aadAdminTeamId
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', roleIds.storageBlobDataContributor)
+      // See https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#all
+      // Note also bug/limitation https://github.com/Azure/bicep/issues/2031#issuecomment-816743989
+  }
+}
+
 resource hosting 'Microsoft.Web/serverfarms@2020-12-01' = {
   name: appServiceName
   location: location
@@ -147,6 +168,14 @@ resource testApp 'Microsoft.Web/sites@2020-12-01' = {
           name: 'ConnectionStrings:DefaultConnection'
           value: 'Server=${server.name}.database.windows.net; Authentication=Active Directory MSI; Initial Catalog=${sqlDBName};'
         }
+        {
+          name: 'Storage:AccountName'
+          value: '${csvStorage.name}'
+        }
+        {
+          name: 'Storage:Container'
+          value: '${csvUploadContainerName}'
+        }
       ]
     }
   }
@@ -158,7 +187,7 @@ resource testStorageAssignment 'Microsoft.Authorization/roleAssignments@2020-04-
   properties: {
     principalId: testApp.identity.principalId
     principalType: 'ServicePrincipal'
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', roleIds.storageBlobDataContributor)
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', roleIds.storageBlobDataReader)
       // See https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#all
       // Note also bug/limitation https://github.com/Azure/bicep/issues/2031#issuecomment-816743989
   }
