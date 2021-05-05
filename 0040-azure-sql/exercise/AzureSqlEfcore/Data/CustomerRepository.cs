@@ -78,12 +78,10 @@ namespace AzureSqlEfcore.Data
                 ON (source.Email = target.Email)
                 WHEN MATCHED AND target.FirstName <> source.FirstName
                     OR target.LastName <> source.LastName 
-                    OR target.Email <> source.Email 
                     OR target.Gender <> source.Gender 
                     OR target.IpAddress <> source.IpAddress THEN
                     UPDATE SET target.FirstName = source.FirstName,
                         target.LastName = source.LastName,
-                        target.Email = source.Email,
                         target.Gender = source.Gender,
                         target.IpAddress = source.IpAddress
                 WHEN NOT MATCHED BY TARGET THEN
