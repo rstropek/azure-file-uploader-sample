@@ -1,4 +1,5 @@
 using AzureSqlEfcore.Data;
+using AzureSqlEfcore.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,8 @@ namespace AzureSqlEfcore
             services.AddDbContext<DataContext>(options => options.UseSqlServer(
                 Configuration["ConnectionStrings:DefaultConnection"]));
             services.AddScoped<ICustomersRepository, CustomersRepository>();
+
+            services.AddSingleton<IBlobDownloader, BlobDownloader>();
 
             // Read more about Application Insights with ASP.NET Core at
             // https://docs.microsoft.com/en-us/azure/azure-monitor/app/asp-net-core

@@ -2,6 +2,7 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
 using AzureSqlEfcore.Data;
+using AzureSqlEfcore.Services;
 using CsvHelper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -18,12 +19,12 @@ namespace AzureSqlEfcore.Controllers
     public class CustomersController : ControllerBase
     {
         private readonly ICustomersRepository repository;
-        private readonly Uri blobContainerEndpoint;
+        private readonly IBlobDownloader downloader;
 
-        public CustomersController(ICustomersRepository repository, IConfiguration configuration)
+        public CustomersController(ICustomersRepository repository, IBlobDownloader downloader)
         {
             this.repository = repository;
-            blobContainerEndpoint = new Uri($"https://{configuration["Storage:AccountName"]}.blob.core.windows.net/{configuration["Storage:Container"]}");
+            this.downloader = downloader;
         }
 
         /// <summary>
@@ -87,12 +88,7 @@ namespace AzureSqlEfcore.Controllers
 
             // Download blob to temporary file. This is necessary if you have to handle large files
             // that might not fit into memory.
-            // Tip: In practice, put blob handling in separate service to keep code clean. Not done here
-            //      to keep things simple. Could be a nice exercise for you to practice.
-            var containerClient = new BlobContainerClient(blobContainerEndpoint, new DefaultAzureCredential());
-            var blobClient = containerClient.GetBlobClient(sourceFile);
-            var tempFileName = Path.Combine(Environment.GetEnvironmentVariable("TMP")!, Guid.NewGuid().ToString());
-            await blobClient.DownloadToAsync(tempFileName);
+            var tempFileName = await downloader.DownloadBlob(sourceFile);
 
             try
             {
