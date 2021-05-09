@@ -1,0 +1,54 @@
+﻿@page "/uploader"
+@using System.IO
+@using Azure.Storage.Blobs
+@using Azure.Storage.Blobs.Models
+@using Azure.Storage
+@using Azure
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@inject FileUploaderHttpClient HttpClient
+
+<h1>Upload</h1>
+
+<p>
+	Here you can upload CSV files. Pick the file you want to upload and press the
+	<i>Upload</i> button to start.
+</p>
+
+<!-- 
+ Read more about file uploading with ASP.NET Core Blazor at
+ https://docs.microsoft.com/en-us/aspnet/core/blazor/file-uploads?view=aspnetcore-5.0
+-->
+
+<form>
+	<div class="mb-3">
+		<label for="file-upload" class="form-label">
+			Selected file:
+		</label>
+
+		<!--
+			Dirty trick to clear selected file after successful upload. There seems to
+			be no better way to do that. Every change of Toggle will lead to a new
+			instance of InputFile -> selection will be cleared.
+		-->
+
+		@if (Toggle)
+		{
+			<InputFile id="file-upload" class="form-control" OnChange="@LoadFiles" />
+		}
+		else
+		{
+			<InputFile id="file-upload" class="form-control" OnChange="@LoadFiles" />
+		}
+	</div>
+
+	<button type="button" class="btn btn-primary" @onclick="OnUpload" hidden="@IsUploading">Upload</button>
+
+	<div class="alert alert-primary" role="alert" hidden="@(!IsUploading)">
+		We are uploading your file. Depending on the file size this might take a few moments.
+	</div>
+
+	<div class="alert @(IsInErrorStatus ? "alert-danger" : "alert-success")" role="alert" hidden="@(IsUploading || StatusMessage == null)">
+		@StatusMessage
+	</div>
+</form>
