@@ -8,4 +8,5 @@ BASE="hellofunctions"
 # Deploy Bicep template for storage account
 az deployment group create --resource-group $RG --name Deployment-$(date +"%Y-%m-%d") \
     --template-file deploy.bicep \
-    --parameters rgName=$RG baseName=$BASE
+    --parameters rgName=$RG baseName=$BASE \
+    | jq .properties.outputs
