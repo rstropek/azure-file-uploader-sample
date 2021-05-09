@@ -1,0 +1,13 @@
+@host=http://localhost:7071
+
+###
+# @name sas
+GET {{host}}/api/GetUploadSas
+
+###
+PUT {{sas.response.body.$.fileName}}
+Content-Type: text/csv
+x-ms-blob-type: BlockBlob
+
+Code;Description
+Foo;Bar
