@@ -9,5 +9,21 @@ PUT {{sas.response.body.$.fileName}}
 Content-Type: text/csv
 x-ms-blob-type: BlockBlob
 
-Code;Description
-Foo;Bar
+id,first_name,last_name,email,gender,ip_address
+0,Opeqi,Afaq,Opeqi@Afaq.com,female,103.240.82.181
+1,Ucagev,Ehiqoti,Ucagev@Ehiqoti.com,female,185.161.152.139
+2,Okuwub,Ihoqe,Okuwub@Ihoqe.com,female,209.244.108.79
+3,Azozez,Eloyav,Azozez@Eloyav.com,male,198.33.254.149
+4,Ehen,Anuj,Ehen@Anuj.com,male,232.114.68.105
+5,Iqor,Uhiq,Iqor@Uhiq.com,female,168.65.252.67
+6,Iwega,Omizu,Iwega@Omizu.com,male,54.68.132.60
+7,Osofek,Ebosup,Osofek@Ebosup.com,female,133.161.213.154
+8,Abew,Afoguce,Abew@Afoguce.com,male,92.2.166.80
+9,Efiwu,Icic,Efiwu@Icic.com,male,71.109.96.170
+
+###
+PUT {{sas.response.body.$.fileName}}
+Content-Type: text/csv
+x-ms-blob-type: BlockBlob
+
+adsf

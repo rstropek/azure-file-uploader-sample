@@ -48,3 +48,4 @@
 * [Blob Storage bindings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob)
 * [Functions in C# 5](https://docs.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide)
 * [.NET 5 Functions worker in GitHub](https://github.com/Azure/azure-functions-dotnet-worker)
+* [Functions and Managed Identity - limitations](https://docs.microsoft.com/en-us/azure/azure-functions/functions-reference#configure-an-identity-based-connection)
