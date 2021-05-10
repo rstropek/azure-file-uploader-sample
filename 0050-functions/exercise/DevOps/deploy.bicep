@@ -183,6 +183,11 @@ resource testApp 'Microsoft.Web/sites@2020-12-01' = {
     serverFarmId: hosting.id
     siteConfig: {
       netFrameworkVersion: 'v5.0'
+      cors: {
+        allowedOrigins: [
+          '*'
+        ]
+      }
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
@@ -224,4 +229,3 @@ resource testApp 'Microsoft.Web/sites@2020-12-01' = {
 output storageConnection string = 'DefaultEndpointsProtocol=https;AccountName=${csvStorage.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(csvStorage.id, csvStorage.apiVersion).keys[0].value}'
 output serviceBusConnection string = 'Endpoint=sb://${serviceBusName}.servicebus.windows.net/;SharedAccessKeyName=${serviceBusAuthorizationName};SharedAccessKey=${listKeys(sbName::serviceBusAuthorization.id, '2017-04-01').primaryKey}'
 output sqlConnection string = 'Server=${server.name}.database.windows.net; Authentication=Active Directory MSI; Initial Catalog=${sqlDBName};'
-

@@ -21,7 +21,15 @@ function randomSimpleString {
 
 ########################################################################################################################
 # Deploy Bicep template for Azure function
-az deployment group create --resource-group $RG --name Deployment-$(date +"%Y-%m-%d") \
+RESULT=$(az deployment group create --resource-group $RG --name Deployment-$(date +"%Y-%m-%d") \
     --template-file deploy.bicep \
     --parameters rgName=$RG baseName=$BASE administratorLoginPassword=$(randomString 15 && echo $RANDSTR) aadAdminTeamId=$ADMINGRP \
-    | jq .properties.outputs
+)
+
+echo $RESULT | jq
+
+########################################################################################################################
+# Set CORS policy for storage account
+STG_CONN=$(echo $RESULT | jq .properties.outputs.storageConnection.value -r)
+az storage cors add --methods DELETE GET HEAD MERGE OPTIONS POST PUT --origins \* --services b \
+    --allowed-headers \* --connection-string $STG_CONN
