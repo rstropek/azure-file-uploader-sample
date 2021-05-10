@@ -8,6 +8,19 @@ param location string = resourceGroup().location
 param uploadContainer string = 'csv-upload'
 param processedContainer string = 'csv-processed'
 
+param serverName string = 'sql-${uniqueString(baseName)}'
+param sqlDBName string = 'sqldb-${uniqueString(baseName)}'
+
+@description('Indicates whether it should be possible to access this SQL Server over the public internet')
+param allowInternetAccess bool = true
+
+@description('Object ID of the AAD group that should become DB administrators')
+param aadAdminTeamId string
+
+param administratorLogin string = 'axadmin'
+@secure()
+param administratorLoginPassword string
+
 var insightsName = concat('insights-', uniqueString(baseName))
 var appServiceName = concat('app-', uniqueString(baseName))
 var functionName = concat('func-', uniqueString(baseName))
@@ -61,6 +74,48 @@ resource csvProcessedContainer 'Microsoft.Storage/storageAccounts/blobServices/c
   }
 }
 
+resource server 'Microsoft.Sql/servers@2020-11-01-preview' = {
+  name: serverName
+  location: location
+  properties: {
+    administratorLogin: administratorLogin
+    administratorLoginPassword: administratorLoginPassword
+    minimalTlsVersion: '1.2'
+    publicNetworkAccess: allowInternetAccess ? 'Enabled' : 'Disabled'
+  }
+  resource aadAdmin 'administrators@2020-11-01-preview' = {
+    name: 'ActiveDirectory'
+    properties: {
+      administratorType: 'ActiveDirectory'
+      login: 'Applications Team - Database Administrator'
+      sid: aadAdminTeamId
+      tenantId: subscription().tenantId
+    }
+  }
+  resource fwAzureApps 'firewallRules@2020-11-01-preview' = {
+    name: concat(serverName, '-fw-azureApps')
+    properties: {
+      startIpAddress: '0.0.0.0'
+      endIpAddress: '0.0.0.0'
+    }
+  }
+  resource fwInternetAccess 'firewallRules@2020-11-01-preview' = if (allowInternetAccess) {
+    name: concat(serverName, '-fw-internet')
+    properties: {
+      startIpAddress: '0.0.0.0'
+      endIpAddress: '255.255.255.255'
+    }
+  }
+  resource sqlDB 'databases@2020-11-01-preview' = {
+    name: sqlDBName
+    location: location
+    sku: {
+      name: 'S0'
+      tier: 'Standard'
+    }
+  }
+}
+
 resource hosting 'Microsoft.Web/serverfarms@2020-12-01' = {
   name: appServiceName
   location: location
@@ -69,7 +124,6 @@ resource hosting 'Microsoft.Web/serverfarms@2020-12-01' = {
     tier: 'Dynamic'
   }
 }
-
 
 resource sbName 'Microsoft.ServiceBus/namespaces@2021-01-01-preview' = {
   name: serviceBusName
@@ -121,6 +175,9 @@ resource testApp 'Microsoft.Web/sites@2020-12-01' = {
   name: functionName
   location: location
   kind: 'functionapp'
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     httpsOnly: true
     serverFarmId: hosting.id
@@ -155,6 +212,10 @@ resource testApp 'Microsoft.Web/sites@2020-12-01' = {
           name: 'StorageConnection'
           value: 'DefaultEndpointsProtocol=https;AccountName=${csvStorage.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(csvStorage.id, csvStorage.apiVersion).keys[0].value}'
         }
+        {
+          name: 'SqlConnection'
+          value: 'Server=${server.name}.database.windows.net; Authentication=Active Directory MSI; Initial Catalog=${sqlDBName};'
+        }
       ]
     }
   }
@@ -162,3 +223,5 @@ resource testApp 'Microsoft.Web/sites@2020-12-01' = {
 
 output storageConnection string = 'DefaultEndpointsProtocol=https;AccountName=${csvStorage.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(csvStorage.id, csvStorage.apiVersion).keys[0].value}'
 output serviceBusConnection string = 'Endpoint=sb://${serviceBusName}.servicebus.windows.net/;SharedAccessKeyName=${serviceBusAuthorizationName};SharedAccessKey=${listKeys(sbName::serviceBusAuthorization.id, '2017-04-01').primaryKey}'
+output sqlConnection string = 'Server=${server.name}.database.windows.net; Authentication=Active Directory MSI; Initial Catalog=${sqlDBName};'
+

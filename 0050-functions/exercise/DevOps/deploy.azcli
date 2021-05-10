@@ -4,9 +4,24 @@
 RG="AxaFileUploader"
 BASE="hellofunctions"
 
+# Find an AAD group
+ADMINGRP=$(az ad group list --display-name AzureAdmins | jq .[0].objectId -r)
+# Alternatively, you could find a single user like that:
+# az ad user list --filter "mail eq 'rainer@software-architects.at'"  | jq .[0].objectId -r
+
 ########################################################################################################################
-# Deploy Bicep template for storage account
+# Some helper functions for generating random strings
+RANDSTR=""
+function randomString {
+    RANDSTR=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w $1 | head -n 1)
+}
+function randomSimpleString {
+    RANDSTR=$(cat /dev/urandom | tr -dc 'a-z' | fold -w $1 | head -n 1)
+}
+
+########################################################################################################################
+# Deploy Bicep template for Azure function
 az deployment group create --resource-group $RG --name Deployment-$(date +"%Y-%m-%d") \
     --template-file deploy.bicep \
-    --parameters rgName=$RG baseName=$BASE \
+    --parameters rgName=$RG baseName=$BASE administratorLoginPassword=$(randomString 15 && echo $RANDSTR) aadAdminTeamId=$ADMINGRP \
     | jq .properties.outputs

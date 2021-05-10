@@ -7,18 +7,18 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Azure.Storage;
-using Microsoft.Extensions.Configuration;
 using System.Linq;
 using Azure.Storage.Sas;
 using Azure.Storage.Blobs;
 using FileUploader.Shared;
-using System.Text.Json;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
-using System.Collections.Generic;
 using Microsoft.Azure.WebJobs.ServiceBus;
 using Azure.Messaging.ServiceBus;
+using System.Data;
+using System.Text.Json;
+using System.Net.Mime;
 
 namespace FileUploaders.Functions
 {
@@ -27,13 +27,14 @@ namespace FileUploaders.Functions
         private static readonly string StorageConnection;
         private static readonly Uri StorageConnectionUri;
         private static readonly StorageSharedKeyCredential StorageCredentials;
-        private readonly IConfiguration Configuration;
+        private static readonly string SqlConnection;
         private readonly ILogger<BlobHandling> Logger;
-
+        private readonly ICustomerBulkInserter bulkInsert;
         private const string Container = "csv-upload";
 
         static BlobHandling()
         {
+            SqlConnection = Environment.GetEnvironmentVariable("SqlConnection")!;
             StorageConnection = Environment.GetEnvironmentVariable("StorageConnection")!;
 
             var connStringArray = StorageConnection
@@ -50,10 +51,10 @@ namespace FileUploaders.Functions
             StorageConnectionUri = new Uri($"https://{storageAccountName}.blob.core.windows.net");
         }
 
-        public BlobHandling(IConfiguration configuration, ILogger<BlobHandling> logger)
+        public BlobHandling(ILogger<BlobHandling> logger, ICustomerBulkInserter bulkInsert)
         {
-            Configuration = configuration;
             Logger = logger;
+            this.bulkInsert = bulkInsert;
         }
 
         [FunctionName(nameof(GetUploadSas))]
@@ -98,21 +99,35 @@ namespace FileUploaders.Functions
                 using var reader = new StreamReader(blobStream);
                 using var csv = new CsvReader(reader, config);
 
-                var result = new List<Customer>();
+                var counter = 0;
+                await bulkInsert.StartAsync();
                 await foreach (var record in csv.GetRecordsAsync<Customer>())
                 {
-                    result.Add(record);
+                    bulkInsert.Add(record);
+                    counter++;
+
+                    if (counter == 10000)
+                    {
+                        await bulkInsert.Insert();
+                        counter = 0;
+                    }
                 }
 
-                // Note: Here we would write the records to the DB. As this is EXACTLY the same
-                // code as discussed in our previous example, the code is not duplicated here.
-                // For demo purposes, we log the first three elements from the CSV.
+                if (counter != 0) await bulkInsert.Insert();
 
-                Logger.LogInformation(JsonSerializer.Serialize(result.Take(3), new JsonSerializerOptions { WriteIndented = true }));
+                Logger.LogInformation($"Successfully imported customers");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                await errorMsg.AddAsync(new ServiceBusMessage(name));
+                var message = new ServiceBusMessage(JsonSerializer.Serialize(new ImportError()
+                {
+                    BlobName = name,
+                    ErrorMessage = ex.Message
+                }))
+                {
+                    ContentType = MediaTypeNames.Application.Json
+                };
+                await errorMsg.AddAsync(message);
                 return;
             }
 
@@ -143,7 +158,9 @@ namespace FileUploaders.Functions
         public void ProcessError(
             [ServiceBusTrigger("importerror", "errorlog", Connection = "ServiceBusConnection")] ServiceBusReceivedMessage msg)
         {
-            Logger.LogError($"Error while importing {msg.Body}");
+            var error = JsonSerializer.Deserialize<ImportError>(msg.Body);
+            if (error == null) return;
+            Logger.LogError($"Error while importing {error.BlobName}: {error.ErrorMessage}");
         }
     }
 }

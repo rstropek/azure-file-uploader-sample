@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 [assembly: FunctionsStartup(typeof(FileUploaders.Functions.Startup))]
 
@@ -8,6 +9,7 @@ namespace FileUploaders.Functions
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
+            builder.Services.AddTransient<ICustomerBulkInserter, CustomerBulkInserter>();
         }
     }
 }

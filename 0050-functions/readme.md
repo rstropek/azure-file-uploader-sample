@@ -4,7 +4,7 @@
 
 * General discussions
   * What is "event-driven computing"?
-  * What is "serverless"?
+  * What is "Serverless"?
 * General introduction into Azure Functions
   * Relationship with App Service (already covered before)
   * Serverless vs. PaaS
@@ -49,3 +49,56 @@
 * [Functions in C# 5](https://docs.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide)
 * [.NET 5 Functions worker in GitHub](https://github.com/Azure/azure-functions-dotnet-worker)
 * [Functions and Managed Identity - limitations](https://docs.microsoft.com/en-us/azure/azure-functions/functions-reference#configure-an-identity-based-connection)
+
+## Important Snippets
+
+### Create DB structure
+
+```sql
+BEGIN TRANSACTION;
+GO
+
+CREATE TABLE [Customers] (
+    [Id] int NOT NULL IDENTITY,
+    [FirstName] nvarchar(100) NULL,
+    [LastName] nvarchar(100) NULL,
+    [Email] nvarchar(150) NOT NULL,
+    [Gender] nvarchar(50) NULL,
+    [IpAddress] nvarchar(15) NULL,
+    CONSTRAINT [PK_Customers] PRIMARY KEY ([ID])
+);
+GO
+
+CREATE TABLE [CustomersStaging] (
+    [Id] int NOT NULL,
+    [FirstName] nvarchar(100) NULL,
+    [LastName] nvarchar(100) NULL,
+    [Email] nvarchar(150) NOT NULL,
+    [Gender] nvarchar(50) NULL,
+    [IpAddress] nvarchar(15) NULL,
+    CONSTRAINT [PK_CustomersStaging] PRIMARY KEY ([ID])
+);
+GO
+
+CREATE UNIQUE INDEX [IX_Customers_Email] ON [Customers] ([Email]);
+GO
+
+CREATE UNIQUE INDEX [IX_CustomersStaging_Email] ON [CustomersStaging] ([Email]);
+GO
+
+COMMIT;
+GO
+```
+
+### Create external user (function) in SQL
+
+```sql
+CREATE USER [func-ugtqqnnxh624m] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_owner ADD MEMBER [func-ugtqqnnxh624m];
+```
+
+### Deploy Function
+
+```sh
+func azure functionapp publish func-ugtqqnnxh624m
+```
