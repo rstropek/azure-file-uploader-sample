@@ -21,19 +21,23 @@ namespace FileUploader
             builder.RootComponents.Add<App>("#app");
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-            builder.Services.AddHttpClient<FileUploaderHttpClient>(client =>
-                client.BaseAddress = new Uri(builder.Configuration["WebApiBase"]));
 
             builder.Services.AddScoped<GraphAPIAuthorizationMessageHandler>();
+            builder.Services.AddScoped<FileUploaderAuthorizationMessageHandler>();
 
             builder.Services.AddHttpClient("GraphAPI",
                     client => client.BaseAddress = new Uri("https://graph.microsoft.com"))
                 .AddHttpMessageHandler<GraphAPIAuthorizationMessageHandler>();
+            builder.Services.AddHttpClient<FileUploaderHttpClient>(client =>
+                client.BaseAddress = new Uri(builder.Configuration["WebApiBase"]))
+                .AddHttpMessageHandler<FileUploaderAuthorizationMessageHandler>();
 
             builder.Services.AddMsalAuthentication(options =>
             {
                 builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
                 options.ProviderOptions.DefaultAccessTokenScopes.Add("User.Read");
+                options.ProviderOptions.DefaultAccessTokenScopes.Add("app://b89440c8-04f2-43c5-a6e7-104b9b31b77c/Read");
+                options.ProviderOptions.DefaultAccessTokenScopes.Add("app://b89440c8-04f2-43c5-a6e7-104b9b31b77c/Write");
             });
 
             await builder.Build().RunAsync();

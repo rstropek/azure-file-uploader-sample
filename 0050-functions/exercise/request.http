@@ -1,5 +1,5 @@
-#@host=http://localhost:7071
-@host=https://func-ugtqqnnxh624m.azurewebsites.net
+@host=http://localhost:7071
+#@host=https://func-ugtqqnnxh624m.azurewebsites.net
 
 ###
 # @name sas

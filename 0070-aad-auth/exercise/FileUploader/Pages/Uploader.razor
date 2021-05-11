@@ -5,8 +5,10 @@
 @using Azure.Storage
 @using Azure
 @using Microsoft.Extensions.Configuration
+@using Microsoft.AspNetCore.Authorization
 @inject IConfiguration Configuration
 @inject FileUploaderHttpClient HttpClient
+@attribute [Authorize]
 
 <h1>Upload</h1>
 

@@ -3,32 +3,19 @@
 @inject IAccessTokenProvider TokenProvider
 @inject IHttpClientFactory ClientFactory
 @inject IHttpClientFactory HttpClientFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<h1>Hello, @userDisplayName!</h1>
+<AuthorizeView>
+    <Authorized>
+        @if(userDisplayName != null)
+        {
+            <h1>Hello, @userDisplayName!</h1>
+        }
+    </Authorized>
+    <NotAuthorized>
+        Please <a href="authentication/login">Log in</a> before proceeding.
+    </NotAuthorized>
+</AuthorizeView>
+
 
 Welcome to your new app.
-
-@code {
-    private string userDisplayName;
-
-    private HttpClient _httpClient;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _httpClient = HttpClientFactory.CreateClient("GraphAPI");
-        try {
-            var dataRequest = await _httpClient.GetAsync("https://graph.microsoft.com/beta/me");
-
-            if (dataRequest.IsSuccessStatusCode)
-            {
-                var userData = System.Text.Json.JsonDocument.Parse(await dataRequest.Content.ReadAsStreamAsync());
-                userDisplayName = userData.RootElement.GetProperty("displayName").GetString();
-            }
-        }
-        catch (AccessTokenNotAvailableException ex)
-        {
-            // Tokens are not valid - redirect the user to log in again
-            ex.Redirect();
-        }
-    }
-}
