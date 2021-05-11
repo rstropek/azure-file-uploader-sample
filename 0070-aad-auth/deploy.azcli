@@ -1,0 +1,38 @@
+# az login --use-device-code
+# az account set --subscription b33f0285-db27-4896-ac5c-df22004b0aba
+
+CLIENT=AxaImportClient
+API=AxaImportApi
+API_ID="app://b89440c8-04f2-43c5-a6e7-104b9b31b77c"
+
+########################################################################################################################
+# Cleanup first, just to make sure we are starting on a clean slate
+./delete-aad-appreg.sh -d $CLIENT
+./delete-aad-appreg.sh -d $API
+
+########################################################################################################################
+# Create AAD client app with SPA redirect URI (standard Angular dev server port)
+CLIENT_REG=$(./create-aad-appreg.sh -d $CLIENT -r https://localhost:5001/authentication/login-callback -p -s)
+CLIENT_APP_ID=$(echo $CLIENT_REG | jq .appId -r)
+echo $CLIENT_REG | jq
+
+########################################################################################################################
+# Add scopes
+API_REG=$(./create-aad-appreg.sh -d $API -i $API_ID -o -p -s)
+API_APP_ID=$(echo $API_REG | jq .appId -r)
+echo $CLIENT_REG | jq
+
+########################################################################################################################
+# Add permissions to client
+MS_GRAPH="00000003-0000-0000-c000-000000000000"
+USER_READ=$(az ad sp show --id $MS_GRAPH | jq '.oauth2Permissions[] | select(.value == "User.Read") | .id' -r)
+USER_READ_ALL=$(az ad sp show --id $MS_GRAPH | jq '.oauth2Permissions[] | select(.value == "User.Read.All") | .id' -r)
+
+API_READ=$(az ad sp show --id $API_APP_ID | jq '.oauth2Permissions[] | select(.value == "Read") | .id' -r)
+API_WRITE=$(az ad sp show --id $API_APP_ID | jq '.oauth2Permissions[] | select(.value == "Write") | .id' -r)
+
+az ad app permission add --id $CLIENT_APP_ID --api $MS_GRAPH --api-permissions $USER_READ=Scope $USER_READ_ALL=Scope
+az ad app permission grant --id $CLIENT_APP_ID --api $MS_GRAPH
+
+az ad app permission add --id $CLIENT_APP_ID --api $API_APP_ID --api-permissions $API_READ=Scope $API_WRITE=Scope
+az ad app permission grant --id $CLIENT_APP_ID --api $API_APP_ID

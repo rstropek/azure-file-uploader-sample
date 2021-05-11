@@ -1,0 +1,34 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject IAccessTokenProvider TokenProvider
+@inject IHttpClientFactory ClientFactory
+@inject IHttpClientFactory HttpClientFactory
+
+<h1>Hello, @userDisplayName!</h1>
+
+Welcome to your new app.
+
+@code {
+    private string userDisplayName;
+
+    private HttpClient _httpClient;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _httpClient = HttpClientFactory.CreateClient("GraphAPI");
+        try {
+            var dataRequest = await _httpClient.GetAsync("https://graph.microsoft.com/beta/me");
+
+            if (dataRequest.IsSuccessStatusCode)
+            {
+                var userData = System.Text.Json.JsonDocument.Parse(await dataRequest.Content.ReadAsStreamAsync());
+                userDisplayName = userData.RootElement.GetProperty("displayName").GetString();
+            }
+        }
+        catch (AccessTokenNotAvailableException ex)
+        {
+            // Tokens are not valid - redirect the user to log in again
+            ex.Redirect();
+        }
+    }
+}

@@ -1,4 +1,0 @@
-@host=http://localhost:7071
-
-###
-POST {{host}}/api/GetUploadSas
