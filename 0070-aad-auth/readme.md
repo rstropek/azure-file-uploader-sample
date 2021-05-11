@@ -31,3 +31,4 @@
 
 * [ASP.NET Core Blazor authentication and authorization](https://docs.microsoft.com/en-us/aspnet/core/blazor/security/)
 * [Blazor Tutorial for Microsoft Identity Platform](https://docs.microsoft.com/en-us/azure/active-directory/develop/tutorial-blazor-webassembly)
+* [Slides](https://slides.com/rainerstropek/gaa-2021-aad-auth-for-apis/fullscreen)
