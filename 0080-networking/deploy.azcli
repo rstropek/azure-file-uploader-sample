@@ -1,0 +1,35 @@
+# az login --use-device-code
+# az account set --subscription "<enter subscription ID here>"
+
+RG="AxaFileUploader"
+BASE="hellope"
+
+# Find an AAD group
+ADMINGRP=$(az ad group list --display-name AzureAdmins | jq .[0].objectId -r)
+# Alternatively, you could find a single user like that:
+# az ad user list --filter "mail eq 'rainer@software-architects.at'"  | jq .[0].objectId -r
+
+########################################################################################################################
+# Some helper functions for generating random strings
+RANDSTR=""
+function randomString {
+    RANDSTR=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w $1 | head -n 1)
+}
+function randomSimpleString {
+    RANDSTR=$(cat /dev/urandom | tr -dc 'a-z' | fold -w $1 | head -n 1)
+}
+
+########################################################################################################################
+# Deploy Bicep template for Azure function
+RESULT=$(az deployment group create --resource-group $RG --name Deployment-$(date +"%Y-%m-%d") \
+    --template-file deploy.bicep \
+    --parameters rgName=$RG baseName=$BASE administratorLoginPassword=$(randomString 15 && echo $RANDSTR) aadAdminTeamId=$ADMINGRP vmAdminPassword=P_ssw0rd123 \
+)
+
+echo $RESULT | jq
+
+########################################################################################################################
+# Set CORS policy for storage account
+STG_CONN=$(echo $RESULT | jq .properties.outputs.storageConnection.value -r)
+az storage cors add --methods DELETE GET HEAD MERGE OPTIONS POST PUT --origins \* --services b \
+    --allowed-headers \* --connection-string $STG_CONN
