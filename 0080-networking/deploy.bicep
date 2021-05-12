@@ -246,8 +246,7 @@ resource hosting 'Microsoft.Web/serverfarms@2020-12-01' = {
   name: appServiceName
   location: location
   sku: {
-    name: 'Y1'
-    tier: 'Dynamic'
+    name: 'EP1'
   }
 }
 
